@@ -19,6 +19,8 @@ from dj_rest_auth.registration.views import (
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
 from sesame.views import LoginView
 
+
+from lead_to_invoice.views import CreateInvoiceView, CreateLeadView
 import build.api
 import common.api
 import company.api
@@ -65,6 +67,9 @@ admin.site.site_header = "InvenTree Admin"
 # API patterns
 apipatterns = [
     path("audit-log/", include("audit_log.urls")),
+    path("lead-to-invoice/", include("lead_to_invoice.urls")),
+    # path("leads/", CreateLeadView.as_view(), name="create-lead-api"),
+    # path("leads/", CreateLeadView.as_view(), name="create-lead-api"),
     path("admin/", include(common.api.admin_api_urls)),
     path("bom/", include(part.api.bom_api_urls)),
     path("build/", include(build.api.build_api_urls)),

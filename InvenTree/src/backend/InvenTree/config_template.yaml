@@ -212,3 +212,7 @@ ldap:
 #   hide_password_reset: true
 #   logo: img/custom_logo.png
 #   splash: img/custom_splash.jpg
+
+PLUGINS:
+  ENABLED:
+    - lead_to_invoice

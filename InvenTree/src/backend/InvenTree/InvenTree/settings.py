@@ -255,6 +255,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     # InvenTree apps
     "build.apps.BuildConfig",
+    "lead_to_invoice",
     # Audit log app
     "audit_log.apps.AuditLogConfig",
     "common.apps.CommonConfig",
@@ -1442,3 +1443,30 @@ if SITE_URL and not TESTING:
 
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+PLUGIN_DIRS = ["/home/inventree/src/backend/InvenTree/"]
+PLUGINS = ["lead_to_invoice"]
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
+
+
+CSRF_COOKIE_HTTPONLY = True
+
+# CSRF_COOKIE_SECURE = False
+
+
+PLUGIN_DIRS = ["/home/inventree/src/backend/InvenTree/"]
+PLUGINS = ["lead_to_invoice"]
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ]
+}
