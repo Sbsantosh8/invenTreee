@@ -63,6 +63,7 @@ from rest_framework_simplejwt.views import (
 )
 
 admin.site.site_header = "InvenTree Admin"
+from lead_to_invoice import urls
 
 # API patterns
 apipatterns = [

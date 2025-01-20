@@ -333,6 +333,7 @@ MIDDLEWARE = CONFIG.get(
         "InvenTree.middleware.InvenTreeExceptionProcessor",  # Error reporting
         "django_structlog.middlewares.RequestMiddleware",  # Structured logging
         "audit_log.middleware.AuditLogMiddleware",  # Audit Log Middleware
+        # "django.contrib.auth.exceptions",
     ],
 )
 
@@ -1463,6 +1464,11 @@ CSRF_COOKIE_HTTPONLY = True
 PLUGIN_DIRS = ["/home/inventree/src/backend/InvenTree/"]
 PLUGINS = ["lead_to_invoice"]
 
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": (
+        "rest_framework.renderers.JSONRenderer",  # Only JSON renderer
+    ),
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
