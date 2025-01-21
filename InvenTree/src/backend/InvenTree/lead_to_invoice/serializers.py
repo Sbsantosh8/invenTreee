@@ -58,6 +58,7 @@ class QuotationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "lead",
+            "items",
             "total_amount",
             "discount",
             "tax",
