@@ -866,6 +866,70 @@ class CreateLeadView(APIView):
         return Response(serializer.data)
 
 
+# class CreateQuotationView(APIView):
+#     queryset = Quotation.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#             lead = Lead.objects.get(id=data["lead_id"])
+#         except Lead.DoesNotExist:
+#             return Response(
+#                 {"error": "Lead not found"}, status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         data["quotation_number"] = generate_number("Quotation")
+#         quotation = Quotation.objects.create(lead=lead, **data)
+#         return Response(
+#             {
+#                 "message": "Quotation created!",
+#                 "quotation_number": quotation.quotation_number,
+#             },
+#             status=status.HTTP_201_CREATED,
+#         )
+
+
+#     def get(self, request):
+#         quotations = Quotation.objects.all()
+#         serializer = QuotationSerializer(quotations, many=True)
+#         return Response(serializer.data)
+
+
+# class CreateQuotationView(APIView):
+#     queryset = Quotation.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#             lead = Lead.objects.get(id=data["lead_id"])
+#         except Lead.DoesNotExist:
+#             return Response(
+#                 {"error": "Lead not found"}, status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         # Generate quotation number
+#         data["quotation_number"] = generate_number("Quotation")
+
+#         # Create the new quotation
+#         quotation = Quotation.objects.create(lead=lead, **data)
+
+#         # Serialize the created quotation
+#         serializer = QuotationSerializer(quotation)
+
+#         # Return the full serialized data in the response
+#         return Response(
+#             {
+#                 "message": "Quotation created!",
+#                 "quotation": serializer.data,  # Return the full serialized quotation data
+#             },
+#             status=status.HTTP_201_CREATED,
+#         )
+
+
+#     def get(self, request):
+#         quotations = Quotation.objects.all()
+#         serializer = QuotationSerializer(quotations, many=True)
+#         return Response(serializer.data)
 class CreateQuotationView(APIView):
     queryset = Quotation.objects.all()
 
@@ -1026,3 +1090,49 @@ class NotificationAPI(APIView):
         notifications = Notification.objects.all()
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data)
+
+
+from django.shortcuts import get_object_or_404
+
+
+class CreateRevisedQuotationAPI(APIView):
+    def post(self, request, quotation_id):
+        # Fetch the original quotation
+        original_quotation = get_object_or_404(Quotation, id=quotation_id)
+
+        # Generate a new quotation number for the revised quotation
+        base_quotation_number = original_quotation.quotation_number
+        revised_quotation_number = base_quotation_number
+
+        # Check if the revised quotation number already exists
+        revision_suffix = 1
+        while Quotation.objects.filter(
+            quotation_number=revised_quotation_number
+        ).exists():
+            revised_quotation_number = f"{base_quotation_number}.{revision_suffix}"
+            revision_suffix += 1
+
+        # Create the revised quotation
+        revised_quotation = Quotation(
+            lead=original_quotation.lead,
+            total_amount=original_quotation.total_amount,
+            discount=original_quotation.discount,
+            tax=original_quotation.tax,
+            status="draft",
+            quotation_number=revised_quotation_number,  # Set the new unique quotation number
+        )
+
+        try:
+            revised_quotation.save()
+            return Response(
+                {
+                    "message": "Revised quotation created successfully.",
+                    "revised_quotation_number": revised_quotation.quotation_number,
+                },
+                status=status.HTTP_201_CREATED,
+            )  # HTTP 201 Created
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

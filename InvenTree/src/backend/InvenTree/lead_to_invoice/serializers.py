@@ -25,17 +25,53 @@ class LeadSerializer(serializers.ModelSerializer):
 
 
 # Quotation Serializer
+# class QuotationSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Quotation
+#         fields = [
+#             "id",  # Ensure that the id field is explicitly included
+#             "lead",
+#             "total_amount",
+#             "discount",
+#             "tax",
+#             "status",
+#             "quotation_number",
+#         ]
+
+
+# class QuotationSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Quotation
+#         fields = [
+#             "id",  # Explicitly include the 'id' field
+#         ]
+
+
+from rest_framework import serializers
+from .models import Quotation
+
+
 class QuotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quotation
         fields = [
             "id",
             "lead",
-            "quotation_number",
             "total_amount",
+            "discount",
+            "tax",
             "status",
-            "created_at",
+            "quotation_number",
         ]
+
+    def validate_quotation_number(self, value):
+        """
+        Ensure that the quotation number is unique.
+        """
+        if Quotation.objects.filter(quotation_number=value).exists():
+            raise serializers.ValidationError("Quotation number must be unique.")
+        return value
 
 
 # Invoice Serializer
