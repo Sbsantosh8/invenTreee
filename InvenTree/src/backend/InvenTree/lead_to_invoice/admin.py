@@ -19,6 +19,7 @@ class LeadAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "name",
+        "lead_number",
         "email",
         "phone",
         "status",
@@ -117,6 +118,8 @@ class InvoiceAdmin(admin.ModelAdmin):
         "id",
         "quotation",
         "invoice_number",
+         "total_amount",
+        "paid_amount",
         "amount_due",
         "status",
         "created_at",
@@ -126,6 +129,10 @@ class InvoiceAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
     list_editable = ("status",)
 
+
+    def total_amount(self, obj):
+        return obj.quotation.total_amount if obj.quotation else None
+    total_amount.short_description = "Total Amount"
 
 # Registering NumberingSystemSettings model
 @admin.register(NumberingSystemSettings)

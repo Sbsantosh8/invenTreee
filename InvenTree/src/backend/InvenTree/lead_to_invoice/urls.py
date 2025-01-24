@@ -6,7 +6,7 @@ from .views import (
     LeadToInvoiceView,
     NotificationAPI,
     NumberingSystemSettingsAPI,
-    CreateRevisedQuotationAPI,
+   
 )
 
 urlpatterns = [
@@ -30,9 +30,5 @@ urlpatterns = [
         NumberingSystemSettingsAPI.as_view(),
         name="numbering-system-api",
     ),  # Numbering system settings API
-    path(
-        "quotations/<int:quotation_id>/revised/",
-        CreateRevisedQuotationAPI.as_view(),
-        name="create_revised_quotation",
-    ),
+   
 ]

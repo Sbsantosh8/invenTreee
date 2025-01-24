@@ -13,15 +13,7 @@ from .models import (
 class LeadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead
-        fields = [
-            "id",
-            "name",
-            "email",
-            "phone",
-            "status",
-            "created_at",
-            "updated_at",
-        ]  # Explicit fields
+        fields = "__all__"
 
 
 # Quotation Serializer
@@ -50,7 +42,7 @@ class LeadSerializer(serializers.ModelSerializer):
 
 from rest_framework import serializers
 from .models import Quotation
-
+from decimal import Decimal
 
 class QuotationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -77,16 +69,21 @@ class QuotationSerializer(serializers.ModelSerializer):
 
 # Invoice Serializer
 class InvoiceSerializer(serializers.ModelSerializer):
+    amount_due = serializers.SerializerMethodField()
     class Meta:
         model = Invoice
-        fields = [
-            "id",
-            "quotation",
-            "invoice_number",
-            "amount_due",
-            "status",
-            "created_at",
-        ]
+        fields = "__all__"
+
+    
+
+
+    def get_amount_due(self, obj):
+    # Access the associated Quotation and calculate amount_due
+     if obj.quotation:
+        total_amount = obj.quotation.total_amount
+        paid_amount = Decimal(obj.paid_amount)  # Convert paid_amount to Decimal if it's a string
+        return total_amount - paid_amount
+     return None
 
 
 # NumberingSystemSettings Serializer
