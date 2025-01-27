@@ -169,7 +169,7 @@ class QuotationSerializer(serializers.ModelSerializer):
 
 #         instance.save()
 #         return instance
-
+####
 
 #     def get_amount_due(self, obj):
 #         # Optional: dynamic read-only calculation
