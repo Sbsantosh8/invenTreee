@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 
 from rest_framework.response import Response
 from rest_framework import status
+from lead_to_invoice.models import *
 from .models import (
     Lead,
     Quotation,
@@ -52,80 +53,340 @@ class CreateLeadView(APIView):
 
 
 
+# class CreateInvoiceView(APIView):
+#     queryset = Invoice.objects.all()
+
+#     def post(self,request):
+#         data = request.data
+#         try:
+#             data["invoice_number"] = generate_number("Invoice")
+#             quotation_id = data["quotation_id"]
+#             print("quotation object.........................",quotation_id)
+#             quotation_obj = Quotation.objects.get(id= quotation_id)
+#             invoice_obj = Invoice.objects.filter(quotation_id=quotation_id).order_by("-created_at").first()
+#             print(f"invoice_obj : {invoice_obj.invoice_number}")
+
+#             # print("created _ at :",invoice_obj.created_at)
+#             data["quotation"] = quotation_id
+#             print("........................",data["quotation"])
+
+#             if "lead_id" in data:
+#                 data["lead"] = data.pop("lead_id")
+
+#         except Exception as e:
+#             print(e)
+
+
+
+#         serializer = InvoiceSerializer(data = data)
+#         if serializer.is_valid():
+#             print("before serializer saving............")
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         else:
+#             return Response(serializer.errors, status=400)
+    
+     
+    
+        
+#         # return Response(
+#         #     {"message": "Invoice created!", "invoice_number": invoice.invoice_number},
+#         #     status=status.HTTP_201_CREATED,
+#         # )
+
+#     def get(self, request):
+#         invoices = Invoice.objects.all()
+#         serializer = InvoiceSerializer(invoices, many=True)
+#         return Response(serializer.data)
+
+# from decimal import Decimal
+# class CreateInvoiceView(APIView):
+#     queryset = Invoice.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#             # Generate a unique invoice number
+#             data["invoice_number"] = generate_number("Invoice")
+
+#             # Fetch the quotation object
+#             quotation_id = data.get("quotation_id")
+#             if not quotation_id:
+#                 return Response({"error": "quotation_id is required."}, status=400)
+            
+#             quotation_obj = Quotation.objects.get(id=quotation_id)
+#             print(f"Quotation object: {quotation_obj}")
+
+#             # Fetch the latest invoice for the same quotation (if any)
+#             latest_invoice = Invoice.objects.filter(quotation_id=quotation_id).order_by("-created_at").first()
+#             print(f"Latest Invoice: {latest_invoice.invoice_number if latest_invoice else 'None'}")
+
+#             # Associate the quotation with the invoice data
+#             data["quotation"] = quotation_obj.id
+
+#             # Calculate amount_due
+#             paid_amount = Decimal(data.get("paid_amount", 0)) 
+#             total_amount = quotation_obj.total_amount
+#             data["amount_due"] = total_amount - float(paid_amount)  # Ensure the calculation is done correctly
+#             print(f"Calculated amount_due: {data['amount_due']}")
+
+#             # Map lead_id to lead if present
+#             if "lead_id" in data:
+#                 data["lead"] = data.pop("lead_id")
+
+#         except Quotation.DoesNotExist:
+#             return Response({"error": "Quotation not found."}, status=404)
+#         except Exception as e:
+#             print(f"Error: {e}")
+#             return Response({"error": str(e)}, status=400)
+
+#         # Serialize and save the invoice
+#         serializer = InvoiceSerializer(data=data)
+#         if serializer.is_valid():
+#             print("Before serializer saving...")
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         else:
+#             return Response(serializer.errors, status=400)
+
+#     def get(self, request):
+#         invoices = Invoice.objects.all()
+#         serializer = InvoiceSerializer(invoices, many=True)
+#         return Response(serializer.data)
+
+
+# from decimal import Decimal
+
+# class CreateInvoiceView(APIView):
+#     queryset = Invoice.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#             # Generate a unique invoice number
+           
+
+#             # Fetch the quotation object
+#             quotation_id = data.get("quotation_id")
+#             if not quotation_id:
+#                 return Response({"error": "quotation_id is required."}, status=400)
+            
+#             quotation_obj = Quotation.objects.get(id=quotation_id)
+#             print(f"Quotation object: {quotation_obj}")
+
+#             # Fetch the latest invoice for the same quotation (if any)
+#             latest_invoice = Invoice.objects.filter(quotation_id=quotation_id).order_by("-created_at").first()
+#             print(f"Latest Invoice: {latest_invoice.invoice_number if latest_invoice else 'None'}")
+
+#             # Associate the quotation with the invoice data
+#             data["quotation"] = quotation_obj.id
+#             data["invoice_number"] = generate_number("Invoice")
+
+#             # Calculate amount_due
+#             paid_amount = Decimal(data.get("paid_amount", "0"))  # Convert paid_amount to Decimal
+#             total_amount = quotation_obj.total_amount  # Already a Decimal
+#             data["amount_due"] = total_amount - paid_amount  # Subtract Decimal from Decimal
+#             print(f"Calculated amount_due: {data['amount_due']}")
+
+#             # Map lead_id to lead if present
+#             if "lead_id" in data:
+#                 data["lead"] = data.pop("lead_id")
+
+#         except Quotation.DoesNotExist:
+#             return Response({"error": "Quotation not found."}, status=404)
+#         except Exception as e:
+#             print(f"Error: {e}")
+#             return Response({"error": str(e)}, status=400)
+
+#         # Serialize and save the invoice
+#         serializer = InvoiceSerializer(data=data)
+#         if serializer.is_valid():
+#             print("Before serializer saving...")
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         else:
+#             return Response(serializer.errors, status=400)
+
+#     def get(self, request):
+#         invoices = Invoice.objects.all()
+#         serializer = InvoiceSerializer(invoices, many=True)
+#         return Response(serializer.data)
+
+
+# from decimal import Decimal
+
+# class CreateInvoiceView(APIView):
+#     queryset = Invoice.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#             # Generate a unique invoice number
+#             data["invoice_number"] = generate_number("Invoice")
+
+#             # Fetch the quotation object
+#             quotation_id = data.get("quotation_id")
+#             if not quotation_id:
+#                 return Response({"error": "quotation_id is required."}, status=400)
+            
+#             quotation_obj = Quotation.objects.get(id=quotation_id)
+#             print(f"Quotation object: {quotation_obj}")
+
+#             # Fetch the latest invoice for the same quotation (if any)
+#             latest_invoice = Invoice.objects.filter(quotation_id=quotation_id).order_by("-created_at").first()
+#             print(f"Latest Invoice: {latest_invoice.invoice_number if latest_invoice else 'None'}")
+
+#             # Associate the quotation with the invoice data
+#             data["quotation"] = quotation_obj.id
+
+#             # Fetch the latest amount_due if available
+#             paid_amount = Decimal(data.get("paid_amount", "0"))  # Convert paid_amount to Decimal
+
+#             # If there is a latest invoice, calculate amount_due based on the last paid amount
+#             if latest_invoice:
+#                 # Use the latest invoice's amount_due to subtract the paid_amount
+#                 amount_due = latest_invoice.amount_due
+#                 print(f"Latest amount_due: {amount_due}")
+
+#                 # Subtract the paid_amount from the amount_due of the latest invoice
+#                 data["amount_due"] = amount_due - paid_amount
+#                 print(f"Calculated amount_due after payment: {data['amount_due']}")
+
+#                 # Ensure amount_due does not go negative
+#                 if data["amount_due"] < 0:
+#                     data["amount_due"] = Decimal("0.00")  # Set to 0 if negative
+#                     print(f"Amount due after payment is zero or less, set to 0")
+
+#             else:
+#                 # If no previous invoice, calculate amount_due from the total amount
+#                 total_amount = quotation_obj.total_amount  # Already a Decimal
+#                 data["amount_due"] = total_amount - paid_amount
+#                 print(f"Calculated amount_due from total amount: {data['amount_due']}")
+
+#                 # Ensure amount_due does not go negative
+#                 if data["amount_due"] < 0:
+#                     data["amount_due"] = Decimal("0.00")  # Set to 0 if negative
+#                     print(f"Amount due after payment is zero or less, set to 0")
+
+#             # Map lead_id to lead if present
+#             if "lead_id" in data:
+#                 data["lead"] = data.pop("lead_id")
+
+#         except Quotation.DoesNotExist:
+#             return Response({"error": "Quotation not found."}, status=404)
+#         except Exception as e:
+#             print(f"Error: {e}")
+#             return Response({"error": str(e)}, status=400)
+
+#         # Serialize and save the invoice
+#         serializer = InvoiceSerializer(data=data)
+#         if serializer.is_valid():
+#             print("Before serializer saving...")
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         else:
+#             return Response(serializer.errors, status=400)
+
+#     def get(self, request):
+#         invoices = Invoice.objects.all()
+#         serializer = InvoiceSerializer(invoices, many=True)
+#         return Response(serializer.data)
+
+from decimal import Decimal
+
+
+# class CreateInvoiceView(APIView):
+#     queryset = Invoice.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#              qid = data["quotation_id"]
+#              inv = Invoice.objects.filter(quotation_id=qid).order_by("-id").first()
+             
+             
+#              serializer = InvoiceSerializer(data=data)
+#              if serializer.is_valid():
+#                  print("before serializer saving...")
+#                  serializer.save()
+                 
+#              return Response(serializer.data)
+
+
+# class CreateInvoiceView(APIView):
+#     queryset = Invoice.objects.all()
+
+#     def post(self, request):
+#         data = request.data
+#         try:
+#             # Extract quotation_id from request data
+#             qid = data.get("quotation_id")
+#             if not qid:
+#                  print("quotation_id is missing from request data")
+#                  return Response({"error": "Quotation ID missing"}, status=400)
+
+            
+#             # Get the latest invoice for the quotation_id
+#             inv = Invoice.objects.filter(quotation_id=qid).order_by("-id").first()
+#             print("invoice id ...",inv.id)
+#             print("invoice total_amount... ",inv.quotation.total_amount)
+#             print("invoice paid_amount.. ",inv.paid_amount)
+            
+#             # Calculate amount_due based on the latest quotation
+#             if inv:
+#                 total_amount = inv.quotation.total_amount  # Assuming the quotation model has total_amount
+#                 paid_amount = inv.paid_amount
+#                 amount_due = total_amount - paid_amount
+#                 print("amount_due : ",amount_due)
+#             else:
+#                 amount_due = Decimal('0.00')  # Default amount_due if no previous invoice
+            
+#             # Add the calculated amount_due to the data dictionary
+#             data["amount_due"] = amount_due
+#             data["invoice_number"] = generate_number("Invoice")
+#             # Serialize and save the invoice
+#             serializer = InvoiceSerializer(data=data)
+#             if serializer.is_valid():
+#                 print("before serializer saving...")
+#                 serializer.save()
+                
+#             return Response(serializer.data)
+#         except KeyError:
+#             return Response({"error": "Quotation ID missing"}, status=400)
+
+
+
+#         except Exception as e:
+             
+#              return Response(e)
+
+from django.db.models import Sum
 class CreateInvoiceView(APIView):
     queryset = Invoice.objects.all()
-     
+ 
     def post(self, request):
         data = request.data
         try:
-            quotation = Quotation.objects.get(id=data["quotation_id"])
-
-            existing_invoice = Invoice.objects.filter(quotation=quotation).order_by('-created_at').first()
-            print(f"existing invoice ....",existing_invoice)
-            if existing_invoice:
-                return Response(
-                {"message": "An invoice already exists for this quotation", 
-                 "invoice_details": InvoiceSerializer(existing_invoice).data}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-               
-
-
-            
-            # amount_due = quotation.total_amount - data["paid_amount"] 
-
-            
+            quotation = Quotation.objects.get(id=data['quotation_id'])  
         except Quotation.DoesNotExist:
-            return Response(
-                {"error": "Quotation not found"}, status=status.HTTP_400_BAD_REQUEST
-            )
-        quotation = Quotation.objects.get(id=data["quotation_id"])
-        
+            return Response({"error": "Quotation not found"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            lead = Lead.objects.get(id=data["lead_id"])
-
+            lead= Lead.objects.get(id=data['lead_id'])
+ 
         except Lead.DoesNotExist:
-            return Response(
-                {"error": "Lead not found"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-   
-
-        data["invoice_number"] = generate_number("Invoice")
-        # print(f"quotation.total_amount : {quotation.total_amount}")
-        # print(f"paid_amount: {data['paid_amount']}")
-        # print(f"amount_due: {float(quotation.total_amount) - float(data['paid_amount'])}")
-        
-        # Assuming you have a 'total_amount' field in 'data'
-        amount_due = float(quotation.total_amount) - float(data["paid_amount"])
-        if amount_due == 0:
-         return Response(
-            {"message": "No invoice created. Amount due is zero."}, 
-            status=status.HTTP_200_OK
-        )
-        data["amount_due"] = amount_due
-
-        if amount_due == 0:
-            return Response(
-            {"message": "No invoice created. Amount due is zero."}, 
-            status=status.HTTP_200_OK
-        )
-
-
+            return Response({"error":"Lead not found"}, status.HTTP_400_BAD_REQUEST)
+           
+ 
+        data['invoice_number'] = generate_number('Invoice')
         invoice = Invoice.objects.create(quotation=quotation, **data)
-
-        serializer = InvoiceSerializer(invoice)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        # return Response(
-        #     {"message": "Invoice created!", "invoice_number": invoice.invoice_number},
-        #     status=status.HTTP_201_CREATED,
-        # )
-
+        return Response({"message": "Invoice created!", "invoice_number": invoice.invoice_number}, status=status.HTTP_201_CREATED)
+ 
     def get(self, request):
         invoices = Invoice.objects.all()
         serializer = InvoiceSerializer(invoices, many=True)
         return Response(serializer.data)
+      
+
 
 
 

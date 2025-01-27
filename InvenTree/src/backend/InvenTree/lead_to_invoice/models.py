@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import ValidationError
 
 
 class Lead(models.Model):
@@ -120,24 +121,170 @@ class Quotation(models.Model):
 
  
 
+# from django.utils import timezone
+# import pytz
+
+# class Invoice(models.Model):
+#     invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+#     quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE)
+#     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
+#     amount_due = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
+#     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     due_date = models.DateTimeField()
+#     status = models.CharField(
+#         max_length=50,
+#         choices=[
+#             ("unpaid", "Unpaid"),
+#             ("paid", "Paid"),
+#             ("partially_paid", "Partially Paid"),
+#         ],
+#     )
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     def save(self, *args, **kwargs):
+#         print("entered in models.py save method....")
+#     # Custom logic
+#         super().save(*args, **kwargs)  # Ensure the parent save method is called
+
+#     def __str__(self):
+#         return f"Invoice invoice id : {self.id} for quotation id : {self.quotation.id} at {self.quotation.created_at}"
+
+#     class Meta:
+#         verbose_name = "Invoice"
+#         verbose_name_plural = "Invoices"
+#         ordering = ["-created_at"]
+#         unique_together = ["invoice_number"]
+#         indexes = [
+#             models.Index(fields=["lead", "status"]),
+
+#         ]
+# from django.db.models import Sum
+
+# from decimal import Decimal
+# class Invoice(models.Model):
+#     invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+#     amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE)
+#     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, default=1)  
+#     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     due_date = models.DateTimeField()
+#     status = models.CharField(max_length=50, choices=[('unpaid', 'Unpaid'), ('paid', 'Paid'), ('partially_paid', 'Partially Paid')])
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     total_amount=models.DecimalField(max_digits=10, decimal_places=2,default=0)
+ 
+ 
+#     # def save(self, *args, **kwargs):
+#     #     if self.quotation:
+#     #         self.total_amount= self.quotation.total_amount
+#     #         self.amount_due = max(self.total_amount - self.paid_amount, 0)
+ 
+ 
+#     #     super().save(*args, **kwargs)
+ 
+#     def save(self, *args, **kwargs):
+#         if self.quotation:
+#             self.total_amount = self.quotation.total_amount
+ 
+#             total_paid = Invoice.objects.filter(quotation=self.quotation).aggregate(total_paid=Sum('paid_amount'))['total_paid'] or Decimal(0)
+ 
+#             remaining_amount_due = self.total_amount - total_paid
+ 
+           
+ 
+#             try:
+#                 if self.paid_amount > remaining_amount_due:
+#                     raise ValueError(f"Paid amount ({self.paid_amount}) exceeds the remaining amount due ({remaining_amount_due}) for this quotation.")
+ 
+#             except ValueError as e:
+#                 raise ValidationError(str(e))
+           
+#             if remaining_amount_due < 0:
+#                 remaining_amount_due = Decimal(0)
+ 
+#             self.amount_due = max(remaining_amount_due - Decimal(self.paid_amount), Decimal(0))
+ 
+             
+#             self.amount_due = max(remaining_amount_due - Decimal(self.paid_amount), Decimal(0))
+ 
+#             if self.amount_due == 0:
+#                 self.status = 'paid'
+#             elif self.amount_due < self.total_amount and self.amount_due > 0:
+#                 self.status = 'partially_paid'
+#             else:
+#                 self.status = 'unpaid'
+ 
+#         super().save(*args, **kwargs)
+ 
+#     def __str__(self):
+#         return f"Invoice for {self.quotation.lead.name}"
+ 
+#     class Meta:
+#         verbose_name = "Invoice"
+#         verbose_name_plural = "Invoices"
+#         ordering = ['-created_at']  
+#         unique_together = ['invoice_number']  
+#         indexes = [
+#             models.Index(fields=['lead', 'status']),  
+#         ]
+ 
+ 
+from django.db import models
+from django.db.models import Sum
+from decimal import Decimal
+from django.core.exceptions import ValidationError
+
 
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE)
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, default=1)
-    amount_due = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
+    amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    quotation = models.ForeignKey('Quotation', on_delete=models.CASCADE)
+    lead = models.ForeignKey('Lead', on_delete=models.CASCADE, default=1)  
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     due_date = models.DateTimeField()
-    status = models.CharField(
-        max_length=50,
-        choices=[
-            ("unpaid", "Unpaid"),
-            ("paid", "Paid"),
-            ("partially_paid", "Partially Paid"),
-        ],
-    )
+    status = models.CharField(max_length=50, choices=[('unpaid', 'Unpaid'), ('paid', 'Paid'), ('partially_paid', 'Partially Paid')])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        if self.quotation:
+            self.total_amount = self.quotation.total_amount
+
+            # Ensure paid_amount is a Decimal
+            paid_amount_decimal = Decimal(self.paid_amount)
+
+            # Aggregate total paid for the quotation
+            total_paid = Invoice.objects.filter(quotation=self.quotation).aggregate(total_paid=Sum('paid_amount'))['total_paid'] or Decimal(0)
+
+            # Calculate remaining amount due
+            remaining_amount_due = self.total_amount - total_paid
+
+            # Validate if paid amount exceeds remaining amount due
+            try:
+                if paid_amount_decimal > remaining_amount_due:
+                    raise ValueError(f"Paid amount ({paid_amount_decimal}) exceeds the remaining amount due ({remaining_amount_due}) for this quotation.")
+            except ValueError as e:
+                raise ValidationError(str(e))
+
+            # Ensure remaining amount due is not negative
+            if remaining_amount_due < 0:
+                remaining_amount_due = Decimal(0)
+
+            # Calculate the amount_due for this invoice
+            self.amount_due = max(remaining_amount_due - paid_amount_decimal, Decimal(0))
+
+            # Set the status of the invoice based on amount_due
+            if self.amount_due == 0:
+                self.status = 'paid'
+            elif self.amount_due < self.total_amount and self.amount_due > 0:
+                self.status = 'partially_paid'
+            else:
+                self.status = 'unpaid'
+
+        # Call the parent class save method
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Invoice for {self.quotation.lead.name}"
@@ -145,10 +292,10 @@ class Invoice(models.Model):
     class Meta:
         verbose_name = "Invoice"
         verbose_name_plural = "Invoices"
-        ordering = ["-created_at"]
-        unique_together = ["invoice_number"]
+        ordering = ['-created_at']
+        unique_together = ['invoice_number']
         indexes = [
-            models.Index(fields=["lead", "status"]),
+            models.Index(fields=['lead', 'status']),
         ]
 
 

@@ -1487,3 +1487,7 @@ CSRF_COOKIE_SECURE = (
 CSRF_COOKIE_SAMESITE = (
     "Lax"  # Ensure this is set to Lax or None, especially for cross-origin requests
 )
+
+
+TIME_ZONE = 'Asia/Kolkata'
+USE_TZ = True
