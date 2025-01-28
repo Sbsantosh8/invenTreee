@@ -91,8 +91,8 @@ class Quotation(models.Model):
         """
         return self.revisions.all()        
 
-    # def __str__(self):
-    #     return self.name 
+    def __str__(self):
+        return self.quotation_number 
      
 
     # def generate_quotation_number(self):
@@ -264,7 +264,7 @@ class Invoice(models.Model):
             # Validate if paid amount exceeds remaining amount due
             try:
                 if paid_amount_decimal > remaining_amount_due:
-                    raise ValueError(f"Paid amount ({paid_amount_decimal}) exceeds the remaining amount due ({remaining_amount_due}) for this quotation.")
+                    raise ValueError(f"Already Paid amount Rs {total_paid} for this quotation ! ")
             except ValueError as e:
                 raise ValidationError(str(e))
 
