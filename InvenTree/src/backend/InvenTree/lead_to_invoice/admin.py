@@ -3,6 +3,7 @@ from .models import Lead, Quotation, Invoice, NumberingSystemSettings, Notificat
 
 
 # Inline for Quotation and Invoice models within Lead admin
+# Inline for Quotation and Invoice models within Lead admin.......
 class QuotationInline(admin.TabularInline):
     model = Quotation
     extra = 0
