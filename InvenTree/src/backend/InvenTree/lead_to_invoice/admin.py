@@ -119,7 +119,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         "quotation",
         "invoice_number",
          "total_amount",
-        "paid_amount",
+        "paid_amount",  
         "amount_due",
         "status",
         "created_at",
@@ -174,7 +174,7 @@ class NotificationAdmin(admin.ModelAdmin):
         "recipient",
         "status",
         "timestamp",
-        "lead",
+        "lead", 
         "quotation",
         "invoice",
     )
