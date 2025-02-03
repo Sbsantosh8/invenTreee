@@ -64,12 +64,12 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
     def get_quotation_number(self, obj):
-        # Accessing the 'quotation_number' field from the related 'Quotation' model
+       
         return obj.quotation.quotation_number if obj.quotation else None
       
 
 
-# NumberingSystemSettings Serializer
+
 class NumberingSystemSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = NumberingSystemSettings
@@ -83,7 +83,7 @@ class NumberingSystemSettingsSerializer(serializers.ModelSerializer):
         ]
 
 
-# Notification Serializer
+
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
@@ -100,21 +100,21 @@ class NotificationSerializer(serializers.ModelSerializer):
         ]
 
 
-# LeadToInvoice Serializer (with nested serializers)
+
 class LeadToInvoiceSerializer(serializers.ModelSerializer):
-    lead = LeadSerializer()  # Nested Lead serializer
+    lead = LeadSerializer()  
     quotation = QuotationSerializer(
         required=False
-    )  # Nested Quotation serializer if available
+    )  
     invoice = InvoiceSerializer(
         required=False
-    )  # Nested Invoice serializer if available
+    ) 
 
     class Meta:
         model = LeadToInvoice
         fields = "__all__"
 
-    # Custom validation to ensure either Quotation or Invoice is provided
+  
     def validate(self, data):
         if not data.get("quotation") and not data.get("invoice"):
             raise serializers.ValidationError(

@@ -304,9 +304,15 @@ class NumberingSystemSettingsAPI(APIView):
         return Response(serializer.data)
 
 
+    
 
 
 class NotificationAPI(APIView):
+    """API view for creating and retrieving notifications.
+
+    Handles POST requests to create new notifications and GET requests to retrieve all notifications.
+"""
+    
     queryset = Notification.objects.all()
 
     def post(self, request):
