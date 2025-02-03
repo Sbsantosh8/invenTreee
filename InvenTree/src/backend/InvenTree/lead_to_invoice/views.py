@@ -66,11 +66,14 @@ class CreateInvoiceView(APIView):
 
         # Generate invoice number
         data['invoice_number'] = generate_number('Invoice')
+        print("data['invoice_number'] : ",data['invoice_number'])
         
         # Try creating the invoice
         try:
             # Create the Invoice object
             invoice = Invoice.objects.create(quotation=quotation, **data)
+            
+
         except ValidationError as e:
             # Catch the validation error and return it in the response
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -81,27 +84,7 @@ class CreateInvoiceView(APIView):
         # Return the serialized data in the response
         return Response({"message": "Invoice created!", "invoice": serializer.data}, status=status.HTTP_201_CREATED)
 
-# from django.db.models import Sum
-# class CreateInvoiceView(APIView):
-#     queryset = Invoice.objects.all()
- 
-#     def post(self, request):
-#         data = request.data
-#         try:
-#             quotation = Quotation.objects.get(id=data['quotation_id'])  
-#         except Quotation.DoesNotExist:
-#             return Response({"error": "Quotation not found"}, status=status.HTTP_400_BAD_REQUEST)
-#         try:
-#             lead= Lead.objects.get(id=data['lead_id'])
- 
-#         except Lead.DoesNotExist:
-#             return Response({"error":"Lead not found"}, status.HTTP_400_BAD_REQUEST)
-           
- 
-#         data['invoice_number'] = generate_number('Invoice')
-#         invoice = Invoice.objects.create(quotation=quotation, **data)
-#         serializer = InvoiceSerializer(invoice)
-#         return Response({"message": "Invoice created!", "invoice": serializer.data}, status=status.HTTP_201_CREATED)
+
  
     def get(self, request):
         invoices = Invoice.objects.all()
@@ -232,6 +215,9 @@ class CreateQuotationView(APIView):
             ''' It goes to generate method,  saves data method, for without Decimal it will work  '''
             
             data["quotation_number"] = generate_number("Quotation")
+            print("data[quotation_number] : ",data["quotation_number"])
+   
+
                       
             ''' Main Quotation Revision Logic for incrementing'''
 
@@ -274,6 +260,8 @@ class CreateQuotationView(APIView):
                 status=data.get("status", "draft"),
                 original_quotation=original_quotation,
             )
+            print("quotation_id :",quotation.id)
+            print("quotation_number :",quotation.quotation_number)
 
         return Response(
             {
@@ -365,3 +353,4 @@ class NotificationAPI(APIView):
         return Response(serializer.data)
 
 
+    
