@@ -141,6 +141,10 @@ class LeadToInvoiceView(APIView):
 
 
 class CreateQuotationView(APIView):
+    """API view for creating and retrieving notifications.
+
+    Handles POST requests to create new notifications and GET requests to retrieve all notifications.
+"""
     def post(self, request):
         data = request.data
         parent_quotation_id = data.get("parent_quotation_id")
@@ -221,7 +225,7 @@ class CreateQuotationView(APIView):
                       
             ''' Main Quotation Revision Logic for incrementing'''
 
-            # Handle revision logic
+            
             original_quotation = None
             if parent_quotation_id:
                 try:
