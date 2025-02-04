@@ -1443,25 +1443,73 @@ if SITE_URL and not TESTING:
     SPECTACULAR_SETTINGS["SERVERS"] = [{"url": SITE_URL}]
 
 
-CORS_ALLOW_ALL_ORIGINS = True
+
 
 
 # PLUGIN_DIRS = ["/home/inventree/src/backend/InvenTree/"]
 # PLUGINS = ["lead_to_invoice"]
 
 
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://127.0.0.1:8000",
+#     "http://localhost:8000",
+#     "http://localhost:5173",
+#     "http://127.0.0.1:5173",
+# ]
+
+
+# CSRF_COOKIE_HTTPONLY = True
+
+# # CSRF_COOKIE_SECURE = False
+
+
+# PLUGIN_DIRS = ["/home/inventree/src/backend/InvenTree/"]
+# PLUGINS = ["lead_to_invoice"]
+
+# REST_FRAMEWORK = {
+#     "DEFAULT_RENDERER_CLASSES": (
+#         "rest_framework.renderers.JSONRenderer",  # Only JSON renderer
+#     ),
+# }
+
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework.authentication.BasicAuthentication",
+#         "rest_framework.authentication.SessionAuthentication",
+#     ]
+# }
+
+# CSRF_COOKIE_NAME = "csrftoken"  # This is the default name, you can change it if needed
+# CSRF_COOKIE_HTTPONLY = False  # CSRF token should be accessible via JavaScript
+# CSRF_COOKIE_SECURE = (
+#     False  # Set to True if using HTTPS (not necessary in development with HTTP)
+# )
+# CSRF_COOKIE_SAMESITE = (
+#     "Lax"  # Ensure this is set to Lax or None, especially for cross-origin requests
+# )
+
+
+# TIME_ZONE = 'Asia/Kolkata'
+# USE_TZ = True
+
+
+
+
+# CORS_ALLOW_ALL_ORIGINS = True
+
+
+
+
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
 ]
-
 
 CSRF_COOKIE_HTTPONLY = True
 
 # CSRF_COOKIE_SECURE = False
-
 
 PLUGIN_DIRS = ["/home/inventree/src/backend/InvenTree/"]
 PLUGINS = ["lead_to_invoice"]
@@ -1488,6 +1536,7 @@ CSRF_COOKIE_SAMESITE = (
     "Lax"  # Ensure this is set to Lax or None, especially for cross-origin requests
 )
 
-
 TIME_ZONE = 'Asia/Kolkata'
 USE_TZ = True
+
+CORS_ALLOW_ALL_ORIGINS = True
