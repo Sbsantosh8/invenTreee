@@ -81,6 +81,7 @@ class CreateInvoiceView(APIView):
         # Serialize the invoice object
         serializer = InvoiceSerializer(invoice)
         
+        
         # Return the serialized data in the response
         return Response({"message": "Invoice created!", "invoice": serializer.data}, status=status.HTTP_201_CREATED)
 
