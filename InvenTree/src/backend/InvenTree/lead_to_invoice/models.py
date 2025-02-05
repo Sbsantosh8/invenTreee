@@ -1,6 +1,6 @@
 from django.db import models
 from django.forms import ValidationError
-
+from django.db import transaction
 
 class Lead(models.Model):
     STATUS_CHOICES = [
@@ -78,8 +78,7 @@ class Quotation(models.Model):
         indexes = [
             models.Index(fields=["lead", "status"]),
         ]
-
-
+    @transaction.atomic
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)     
             
@@ -170,7 +169,7 @@ from django.core.exceptions import ValidationError
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.db.models import Sum
-
+from django.db import transaction
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -182,7 +181,8 @@ class Invoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
+    
+    @transaction.atomic
     def save(self, *args, **kwargs):
         if self.quotation:
             self.total_amount = self.quotation.total_amount

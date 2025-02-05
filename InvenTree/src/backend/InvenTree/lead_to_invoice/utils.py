@@ -5,7 +5,8 @@ from .models import (
 )
 
 # Function to generate unique numbers based on the numbering system settings
-
+from django.db import transaction
+@transaction.atomic
 def generate_number(type):
 
     settings = NumberingSystemSettings.objects.get(type=type)
