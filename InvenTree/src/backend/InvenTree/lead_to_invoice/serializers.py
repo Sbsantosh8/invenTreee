@@ -54,11 +54,13 @@ class QuotationSerializer(serializers.ModelSerializer):
 
 
 
-
+from pytz import timezone as pytz_timezone
 
 class InvoiceSerializer(serializers.ModelSerializer):
     quotation_number = serializers.SerializerMethodField()
     lead_id = serializers.ReadOnlyField(source='quotation.lead.id')
+    created_at = serializers.SerializerMethodField()
+    due_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
@@ -68,6 +70,16 @@ class InvoiceSerializer(serializers.ModelSerializer):
     def get_quotation_number(self, obj):
        
         return obj.quotation.quotation_number if obj.quotation else None
+    
+    def get_created_at(self, obj):
+        local_tz = pytz_timezone('Asia/Kolkata')
+        local_time = obj.created_at.astimezone(local_tz)
+        return local_time.strftime("%d-%m-%Y ")
+    
+    def get_due_date(self, obj):
+        local_tz = pytz_timezone('Asia/Kolkata')
+        local_time = obj.due_date.astimezone(local_tz)
+        return local_time.strftime("%d-%m-%Y ")
       
 
 
