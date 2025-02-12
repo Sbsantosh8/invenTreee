@@ -54,7 +54,10 @@ class QuotationSerializer(serializers.ModelSerializer):
 
 
 
+      
 from pytz import timezone as pytz_timezone
+from datetime import datetime
+from dateutil.parser import parse as dateutil_parse
 
 class InvoiceSerializer(serializers.ModelSerializer):
     quotation_number = serializers.SerializerMethodField()
@@ -64,23 +67,29 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Invoice
-        fields = ['id', 'quotation','quotation_number', 'invoice_number','total_amount','paid_amount', 'amount_due', 'status', 'created_at','lead_id','due_date'] 
-
+        fields = ['id', 'quotation', 'quotation_number', 'invoice_number', 'total_amount', 'paid_amount', 'amount_due', 'status', 'created_at', 'lead_id', 'due_date']
 
     def get_quotation_number(self, obj):
-       
         return obj.quotation.quotation_number if obj.quotation else None
-    
+
     def get_created_at(self, obj):
         local_tz = pytz_timezone('Asia/Kolkata')
         local_time = obj.created_at.astimezone(local_tz)
         return local_time.strftime("%d-%m-%Y ")
-    
+
     def get_due_date(self, obj):
-        local_tz = pytz_timezone('Asia/Kolkata')
-        local_time = obj.due_date.astimezone(local_tz)
-        return local_time.strftime("%d-%m-%Y ")
-      
+        if obj.due_date:
+            try:
+                # Ensure obj.due_date is a string before parsing
+                due_date_str = str(obj.due_date)
+                # Parse the due_date string to a datetime object
+                due_date = dateutil_parse(due_date_str)
+                local_tz = pytz_timezone('Asia/Kolkata')
+                local_time = due_date.astimezone(local_tz)
+                return local_time.strftime("%d-%m-%Y ")
+            except (ValueError, TypeError):
+                return obj.due_date  # Return the original value if parsing fails
+        return None
 
 
 
