@@ -286,8 +286,20 @@ export const ModelInformationDict: ModelDict = {
     url_overview: '/settings/admin/errors',
     url_detail: '/settings/admin/errors/:pk/',
     icon: 'exclamation'
+  },
+  invoice: {
+    label: () => t`Invoice`,
+    label_multiple: () => t`Invoices`,
+    url_overview: '/invoices',
+    url_detail: '/invoices',
+    api_endpoint: ApiEndpoints.invoice_list,
+    icon: 'sales_orders'
   }
 };
+
+
+
+
 
 /*
  * Extract model definition given the provided type - returns translatable strings for labels as string, not functions

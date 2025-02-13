@@ -20,13 +20,7 @@ export default function PurchasingIndex() {
 
   const panels = useMemo(() => {
     return [
-      {
-        name: 'purchaseorders',
-        label: t`Purchase Orders`,
-        icon: <IconShoppingCart />,
-        content: <PurchaseOrderTable />,
-        hidden: !user.hasViewRole(UserRoles.purchase_order)
-      },
+ 
       {
         name: 'suppliers',
         label: t`Suppliers`,
@@ -37,6 +31,13 @@ export default function PurchasingIndex() {
             params={{ is_supplier: true }}
           />
         )
+      },
+      {
+        name: 'purchaseorders',
+        label: t`Purchase Orders`,
+        icon: <IconShoppingCart />,
+        content: <PurchaseOrderTable />,
+        hidden: !user.hasViewRole(UserRoles.purchase_order)
       },
       {
         name: 'manufacturer',

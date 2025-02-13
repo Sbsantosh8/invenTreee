@@ -18,8 +18,9 @@ interface PageDetailInterface {
   breadcrumbAction?: () => void;
   actions?: ReactNode[];
   editAction?: () => void;
-  editEnabled?: boolean;
+  editEnabled?: boolean; 
 }
+
 
 /**
  * Construct a "standard" page detail for common display between pages.

@@ -222,5 +222,12 @@ export enum ApiEndpoints {
   project_code_list = 'project-code/',
   custom_unit_list = 'units/',
   ui_preference = 'web/ui_preference/',
-  notes_image_upload = 'notes-image-upload/'
+  notes_image_upload = 'notes-image-upload/',
+
+// Invoice API endpoints
+
+invoice_list = 'lead-to-invoice/invoices/'
+
 }
+
+

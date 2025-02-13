@@ -23,6 +23,7 @@ export function useSalesOrderFields({
 }: {
   duplicateOrderId?: number;
 }): ApiFormFieldSet {
+  console.log("sales order form : frm forms/SalesOrderForms.tsx .....")
   return useMemo(() => {
     const fields: ApiFormFieldSet = {
       reference: {},

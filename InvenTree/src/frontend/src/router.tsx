@@ -184,6 +184,7 @@ import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Loadable } from './functions/loading';
+import InvoiceIndex from './components/nav/InvoiceDetail';
 
 // Lazy loaded pages
 export const LayoutComponent = Loadable(
@@ -353,7 +354,11 @@ export const routes = (
         <Route path='customer/:id/*' element={<CustomerDetail />} />
       </Route>
       {/* Add the Invoice route */}
-      <Route path='invoice' element={<Invoice />} />
+      <Route path='invoice/'>
+        <Route index element={<Navigate to='index/' />} />
+        <Route path='index/*' element={<InvoiceIndex />} />
+      </Route>
+      
     </Route>
     <Route path='/' errorElement={<ErrorPage />}>
       <Route path='/login' element={<Login />} />,

@@ -7,7 +7,7 @@ import { formatCurrency } from '../../defaults/formatters';
 import { ApiEndpoints } from '../../enums/ApiEndpoints';
 import { ModelType } from '../../enums/ModelType';
 import { UserRoles } from '../../enums/Roles';
-import { useReturnOrderFields } from '../../forms/ReturnOrderForms';
+import { useInvoiceFields } from '../../forms/InvoicesForms';
 import {
   useOwnerFilters,
   useProjectCodeFilters,
@@ -18,11 +18,9 @@ import { useTable } from '../../hooks/UseTable';
 import { apiUrl } from '../../states/ApiState';
 import { useUserState } from '../../states/UserState';
 import {
-  CompletionDateColumn,
   CreatedByColumn,
   CreationDateColumn,
   DescriptionColumn,
-  LineItemsProgressColumn,
   ProjectCodeColumn,
   ReferenceColumn,
   ResponsibleColumn,
@@ -46,27 +44,28 @@ import {
   ResponsibleFilter,
   type TableFilter,
   TargetDateAfterFilter,
-  TargetDateBeforeFilter
+  TargetDateBeforeFilter,
+  PaidStatusFilter // Import the new filter
 } from '../Filter';
 import { InvenTreeTable } from '../InvenTreeTable';
 
-export function ReturnOrderTable({
+export function InvoiceTable({
   partId,
   customerId
 }: Readonly<{
   partId?: number;
   customerId?: number;
 }>) {
-  const table = useTable(!!partId ? 'returnorders-part' : 'returnorders-index');
+  const table = useTable(!!partId ? 'invoices-part' : 'invoices-index');
   const user = useUserState();
-  console.log("Return Order Table : frm tables/sales/ReturnOrderTable.tsx .....")
+
   const projectCodeFilters = useProjectCodeFilters();
   const responsibleFilters = useOwnerFilters();
   const createdByFilters = useUserFilters();
 
   const tableFilters: TableFilter[] = useMemo(() => {
     const filters: TableFilter[] = [
-      OrderStatusFilter({ model: ModelType.returnorder }),
+      OrderStatusFilter({ model: ModelType.invoice }),
       OutstandingFilter(),
       OverdueFilter(),
       AssignedToMeFilter(),
@@ -81,7 +80,8 @@ export function ReturnOrderTable({
       HasProjectCodeFilter(),
       ProjectCodeFilter({ choices: projectCodeFilters.choices }),
       ResponsibleFilter({ choices: responsibleFilters.choices }),
-      CreatedByFilter({ choices: createdByFilters.choices })
+      CreatedByFilter({ choices: createdByFilters.choices }),
+      PaidStatusFilter() // Add the new filter here
     ];
 
     if (!!partId) {
@@ -101,81 +101,82 @@ export function ReturnOrderTable({
     createdByFilters.choices
   ]);
 
-  const tableColumns = useMemo(() => {
-    return [
-      ReferenceColumn({}),
-      {
-        accessor: 'customer__name',
-        title: t`Customer`,
-        sortable: true,
-        render: (record: any) => {
-          const customer = record.customer_detail ?? {};
+  const invoiceFields = useInvoiceFields();
 
-          return (
-            <Thumbnail
-              src={customer?.image}
-              alt={customer.name}
-              text={customer.name}
-            />
-          );
-        }
-      },
-      {
-        accessor: 'customer_reference'
-      },
-      DescriptionColumn({}),
-      LineItemsProgressColumn(),
-      StatusColumn({ model: ModelType.returnorder }),
-      ProjectCodeColumn({}),
-      CreationDateColumn({}),
-      CreatedByColumn({}),
-      TargetDateColumn({}),
-      CompletionDateColumn({
-        accessor: 'complete_date'
-      }),
-      ResponsibleColumn({}),
-      {
-        accessor: 'total_price',
-        title: t`Total Price`,
-        sortable: true,
-        render: (record: any) => {
-          return formatCurrency(record.total_price, {
-            currency: record.order_currency ?? record.customer_detail?.currency
-          });
-        }
-      }
-    ];
-  }, []);
-
-  const returnOrderFields = useReturnOrderFields({});
-
-  const newReturnOrder = useCreateApiFormModal({
-    url: ApiEndpoints.return_order_list,
-    title: t`Add Return Order`,
-    fields: returnOrderFields,
+  const newInvoice = useCreateApiFormModal({
+    url: ApiEndpoints.invoice_list,
+    title: t`Add Invoice`,
+    fields: invoiceFields,
     initialData: {
       customer: customerId
     },
     follow: true,
-    modelType: ModelType.returnorder
+    modelType: ModelType.invoice
   });
 
   const tableActions = useMemo(() => {
     return [
       <AddItemButton
-        key='add-return-order'
-        tooltip={t`Add Return Order`}
-        onClick={() => newReturnOrder.open()}
-        hidden={!user.hasAddRole(UserRoles.return_order)}
+        key='add-invoice'
+        tooltip={t`Add Invoice`}
+        onClick={() => newInvoice.open()}
+        hidden={!user.hasAddRole(UserRoles.invoice)}
       />
     ];
   }, [user]);
 
+  const tableColumns = useMemo(() => {
+    return [
+      ReferenceColumn({}),
+      {
+        accessor: 'quotation_number',
+        title: t`Quotation Number`
+      },
+      {
+        accessor: 'invoice_number',
+        title: t`Invoice Number`
+      },
+      {
+        accessor: 'total_amount',
+        title: t`Total Amount`,
+        render: (record: any) => formatCurrency(record.total_amount)
+      },
+      {
+        accessor: 'paid_amount',
+        title: t`Paid Amount`,
+        render: (record: any) => formatCurrency(record.paid_amount)
+      },
+      {
+        accessor: 'amount_due',
+        title: t`Amount Due`,
+        render: (record: any) => formatCurrency(record.amount_due)
+      },
+      {
+        accessor: 'status',
+        title: t`Status`,
+        render: (record: any) => getStatusDisplay(record.status)
+      },
+      {
+        accessor: 'created_at',
+        title: t`Created Date`
+      },
+      {
+        accessor: 'lead_id',
+        title: t`Lead`,
+        render: (record: any) => getLeadNameById(record.lead_id)
+      },
+      {
+        accessor: 'due_date',
+        title: t`Due Date`
+      }
+    ];
+  }, []);
+
   return (
     <>
-      {newReturnOrder.modal}
+      {newInvoice.modal}
       <InvenTreeTable
-        url={apiUrl(ApiEndpoints.return_order_list)}
+        url={apiUrl(ApiEndpoints.invoice_list)}
         tableState={table}
         columns={tableColumns}
         props={{
@@ -186,7 +187,7 @@ export function ReturnOrderTable({
           },
           tableFilters: tableFilters,
           tableActions: tableActions,
-          modelType: ModelType.returnorder,
+          modelType: ModelType.invoice,
           enableSelection: true,
           enableDownload: true,
           enableReports: true
@@ -195,3 +196,11 @@ export function ReturnOrderTable({
     </>
   );
 }
+
+function getStatusDisplay(status: any): any {
+    throw new Error('Function not implemented.');
+}
+function getLeadNameById(lead_id: any): any {
+    throw new Error('Function not implemented.');
+}
+
