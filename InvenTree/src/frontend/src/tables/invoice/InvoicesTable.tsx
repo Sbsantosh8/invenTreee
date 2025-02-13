@@ -203,4 +203,3 @@ function getStatusDisplay(status: any): any {
 function getLeadNameById(lead_id: any): any {
     throw new Error('Function not implemented.');
 }
-

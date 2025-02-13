@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { t } from '@lingui/macro';
 
+import { t } from '@lingui/macro';
+import { useMemo } from 'react';
 export function useInvoiceFields() {
   console.log("invoice form rendered...")
   return useMemo(() => {
@@ -32,4 +32,5 @@ export function useInvoiceFields() {
     ];
   }, []);
 }
+
 

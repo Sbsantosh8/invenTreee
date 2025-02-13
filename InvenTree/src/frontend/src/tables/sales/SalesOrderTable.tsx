@@ -114,17 +114,21 @@ export function SalesOrderTable({
     follow: true,
     modelType: ModelType.salesorder
   });
+  console.log("Sales Order Table : frm tables/sales/SalesOrderTable.tsx .....")
 
   const tableActions = useMemo(() => {
     return [
       <AddItemButton
         key='add-sales-order'
         tooltip={t`Add Sales Order`}
-        onClick={() => newSalesOrder.open()}
+        onClick={() => {
+          console.log("Add Sales Order button clicked...");
+          newSalesOrder.open();
+        }}
         hidden={!user.hasAddRole(UserRoles.sales_order)}
       />
     ];
-  }, [user]);
+  }, [user]); 
 
   const tableColumns = useMemo(() => {
     return [
