@@ -1,7 +1,7 @@
 import { Stack } from '@mantine/core';
 import { useMemo } from 'react';
 import { t } from '@lingui/macro';
-import { IconBuildingStore, IconTruckDelivery, IconTruckReturn, IconFileInvoice } from '@tabler/icons-react';
+import { IconFileInvoice } from '@tabler/icons-react';
 
 import PermissionDenied from '../../components/errors/PermissionDenied';
 import { PageDetail } from '../../components/nav/PageDetail';
@@ -11,11 +11,10 @@ import { useUserState } from '../../states/UserState';
 import { PaidInvoiceTable } from '../../tables/invoice/PaidInvoice';
 import { PartialPaidInvoiceTable } from '../../tables/invoice/PartialPaid';
 import { UnPaidInvoiceTable } from '../../tables/invoice/UnPaidInvoice';
-import Invoice from './Invoice'; // Import the Invoice component as a default import
 
 export default function InvoiceIndex() {
   const user = useUserState();
-
+  console.log("Invoice Index.....   from F:\InvenTree\InvenTree\src\frontend\src\components\nav\InvoiceDetail.tsx");
   // Define the panels
   const panels = useMemo(() => {
     return [
