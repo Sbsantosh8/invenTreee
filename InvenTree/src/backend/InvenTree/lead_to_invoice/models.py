@@ -1,101 +1,303 @@
+import decimal
+import re
 from django.db import models
 from django.forms import ValidationError
 from django.db import transaction
+from django.utils import timezone
+from django.core.validators import EmailValidator, RegexValidator, MinLengthValidator
 
+# class Lead(models.Model):
+    # STATUS_CHOICES = [
+    #     ("new", "New"),
+    #     ("contacted", "Contacted"),
+    #     ("qualified", "Qualified"),
+    #     ("converted", "Converted"),
+    #     ("lost", "Lost"),
+    # ]
+    # lead_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    # name = models.CharField(max_length=255)
+    # email = models.EmailField()
+    # phone = models.CharField(max_length=15)
+    # address = models.TextField()
+    # source = models.CharField(max_length=255)
+    # status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="new")
+    # notes = models.TextField(null=True, blank=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # updated_at = models.DateTimeField(auto_now=True)
+
+    # def __str__(self):
+    #     return self.name
+
+    # class Meta:
+    #     verbose_name = "Lead"
+    #     verbose_name_plural = "Leads"
+    #     ordering = ["-created_at"]
+    #     unique_together = ["lead_number"]
+    #     indexes = [
+    #         models.Index(fields=["email"]),
+    #     ]
+
+
+# class Quotation(models.Model):
+    # quotation_number = models.CharField(
+    #     max_length=50, unique=True, null=True, blank=True
+    # )
+    # lead = models.ForeignKey("Lead", on_delete=models.CASCADE)
+    # original_quotation = models.ForeignKey(
+    #     "self",
+    #     null=True,
+    #     blank=True,
+    #     on_delete=models.SET_NULL,
+    #     related_name="revisions",
+    # )
+    # revision_count = models.PositiveIntegerField(
+    #     default=0
+    # )  # Tracks the revision number
+
+    # items = models.JSONField(
+    #     default=list
+    # )  # List of items in the quotation (product IDs, names, quantities, prices)
+    # total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    # discount = models.DecimalField(
+    #     max_digits=5, decimal_places=2, null=True, blank=True
+    # )
+    # tax = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # status = models.CharField(
+    #     max_length=50,
+    #     choices=[
+    #         ("draft", "Draft"),
+    #         ("sent", "Sent"),
+    #         ("accepted", "Accepted"),
+    #         ("rejected", "Rejected"),
+    #     ],
+    # )
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # updated_at = models.DateTimeField(auto_now=True)
+
+    # class Meta:
+    #     verbose_name = "Quotation"
+    #     verbose_name_plural = "Quotations"
+    #     ordering = ["-created_at"]
+    #     unique_together = ["quotation_number"]
+    #     indexes = [
+    #         models.Index(fields=["lead", "status"]),
+    #     ]
+    # @transaction.atomic
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)     
+            
+
+
+    # def get_revisions(self):
+    #     """
+    #     Get all revisions for this quotation.
+    #     """
+    #     return self.revisions.all()        
+
+    # def __str__(self):
+    #     return self.quotation_number 
+     
+def validate_name(value):
+    if not re.match("^[a-zA-Z ]*$", value):
+        raise ValidationError('Name can only contain alphabets and spaces')
+    if len(value.strip()) < 2:
+        raise ValidationError('Name must be at least 2 characters long')
+ 
+def validate_gmail(value):
+    if not value.lower().endswith('@gmail.com'):
+        raise ValidationError('Only Gmail addresses are allowed')
+   
 class Lead(models.Model):
-    STATUS_CHOICES = [
-        ("new", "New"),
-        ("contacted", "Contacted"),
-        ("qualified", "Qualified"),
-        ("converted", "Converted"),
-        ("lost", "Lost"),
-    ]
+    STATUS_CHOICES = [('new', 'New'),('contacted', 'Contacted'),('qualified', 'Qualified'),('converted', 'Converted'),('lost', 'Lost')]
+ 
     lead_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    phone = models.CharField(max_length=15)
-    address = models.TextField()
-    source = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="new")
-    notes = models.TextField(null=True, blank=True)
+ 
+    name = models.CharField(max_length=255,validators=[validate_name],help_text="Enter only alphabetical characters and spaces")
+ 
+    email = models.EmailField(validators=[EmailValidator(),validate_gmail],help_text="Enter a valid Gmail address")
+ 
+    phone = models.CharField(max_length=15,validators=[RegexValidator(regex=r'^\d{10,15}$',message='Phone number must be between 10 and 15 digits'),MinLengthValidator(10)],help_text="Enter at least 10 digits")
+ 
+    address = models.TextField(validators=[MinLengthValidator(10, 'Address must be at least 10 characters long')])
+ 
+    source = models.CharField(max_length=255,validators=[MinLengthValidator(2, 'Source must be at least 2 characters long')])
+ 
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='new')
+ 
+ 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+ 
+    def generate_lead_number(self):
+        """
+        Generate a sequential lead number without gaps.
+        Format: LD-SEQUENCE-YEAR
+        """
+        current_year = timezone.now().year
+   
+        latest_lead = Lead.objects.filter(
+            created_at__year=current_year,
+            lead_number__isnull=False
+        ).order_by('-lead_number').first()
+ 
+        if latest_lead and latest_lead.lead_number:
+            try:
+                parts = latest_lead.lead_number.split('-')
+                if len(parts) == 3 and parts[0] == 'LD':
+                    last_number = int(parts[1])
+                    new_number = last_number + 1
+                else:
+                    new_number = 1
+            except (ValueError, IndexError):
+                new_number = 1
+        else:
+            new_number = 1
+ 
+        lead_number = f"LD-{new_number:03d}-{current_year}"
+   
+        while Lead.objects.filter(lead_number=lead_number).exists():
+            new_number += 1
+            lead_number = f"LD-{new_number:03d}-{current_year}"
+ 
+        return lead_number
+ 
+    def save(self, *args, **kwargs):
+        if not self.lead_number:
+            self.lead_number = self.generate_lead_number()
+       
+        self.full_clean()
+        super().save(*args, **kwargs)
+ 
+ 
+    def clean(self):
+        super().clean()
+       
+        if self.phone:
+            if not self.phone.isdigit():
+                raise ValidationError({'phone': 'Phone number can only contain digits'})
+ 
+        if self.address and len(self.address.strip()) < 10:
+            raise ValidationError({'address': 'Address is too short'})
+ 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+ 
     def __str__(self):
-        return self.name
-
+        return f"{self.name} ({self.lead_number})"
+ 
     class Meta:
         verbose_name = "Lead"
         verbose_name_plural = "Leads"
-        ordering = ["-created_at"]
-        unique_together = ["lead_number"]
+        ordering = ['-created_at']
+        unique_together = ['lead_number']
         indexes = [
-            models.Index(fields=["email"]),
+            models.Index(fields=['email']),
+            models.Index(fields=['phone']),
+            models.Index(fields=['status']),
         ]
-
+ 
 
 class Quotation(models.Model):
-    quotation_number = models.CharField(
-        max_length=50, unique=True, null=True, blank=True
-    )
+    quotation_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     lead = models.ForeignKey("Lead", on_delete=models.CASCADE)
     original_quotation = models.ForeignKey(
-        "self",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="revisions",
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="revisions"
     )
-    revision_count = models.PositiveIntegerField(
-        default=0
-    )  # Tracks the revision number
-
-    items = models.JSONField(
-        default=list
-    )  # List of items in the quotation (product IDs, names, quantities, prices)
+    revision_count = models.PositiveIntegerField(default=0)  
+    items = models.JSONField(default=list)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    discount = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    discount = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     tax = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     status = models.CharField(
         max_length=50,
-        choices=[
-            ("draft", "Draft"),
-            ("sent", "Sent"),
-            ("accepted", "Accepted"),
-            ("rejected", "Rejected"),
-        ],
+        choices=[("draft", "Draft"), ("sent", "Sent"), ("accepted", "Accepted"), ("rejected", "Rejected")],
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+ 
     class Meta:
         verbose_name = "Quotation"
         verbose_name_plural = "Quotations"
         ordering = ["-created_at"]
         unique_together = ["quotation_number"]
-        indexes = [
-            models.Index(fields=["lead", "status"]),
-        ]
-    @transaction.atomic
+        indexes = [models.Index(fields=["lead", "status"])]
+ 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)     
-            
-
-
-    def get_revisions(self):
-        """
-        Get all revisions for this quotation.
-        """
-        return self.revisions.all()        
+        if isinstance(self.total_amount, (float, str)):
+            self.total_amount = Decimal(str(self.total_amount))
+       
+        if self.discount and isinstance(self.discount, (float, str)):
+            self.discount = Decimal(str(self.discount))
+        if self.tax and isinstance(self.tax, (float, str)):
+            self.tax = Decimal(str(self.tax))
+ 
+        if not self.quotation_number:
+            if self.original_quotation:
+                revisions = Quotation.objects.filter(original_quotation=self.original_quotation)
+                if revisions.exists():
+                    max_revision = max(
+                        [int(revision.quotation_number.split(".")[-1])
+                         for revision in revisions
+                         if "." in revision.quotation_number],
+                        default=0,
+                    )
+                    self.quotation_number = f"{self.original_quotation.quotation_number}.{max_revision + 1}"
+                else:
+                    self.quotation_number = f"{self.original_quotation.quotation_number}.1"
+            else:
+                self.quotation_number = self.generate_quotation_number()
+ 
+        super().save(*args, **kwargs)
+ 
+        if self.status == "accepted":
+            self.create_invoice()
+ 
+    def create_invoice(self):
+        """Creates an unpaid invoice when a quotation is accepted."""
+        if not Invoice.objects.filter(quotation=self).exists():
+            try:
+                i = Invoice.objects.create(
+                    quotation=self,
+                    lead=self.lead,
+                    total_amount=Decimal(str(self.total_amount)),
+                    amount_due=Decimal(str(self.total_amount)),
+                    paid_amount=Decimal('0.00'),
+                    status='unpaid',
+                    due_date=timezone.now() + timezone.timedelta(days=30)
+                )
+                print("invoice created .........",i.invoice_number)
+            except (TypeError, ValueError) as e:
+                raise ValidationError(f"Error creating invoice: {str(e)}")
 
     def __str__(self):
-        return self.quotation_number 
-     
+        return self.quotation_number
 
+    def generate_quotation_number(self):
+        """
+        Generate a unique quotation number for new quotations.
+        The format will be QN-MONTH-YEAR-SEQUENCE.
+        """
+        current_month = self.created_at.month
+        current_year = self.created_at.year
    
+        latest_quotation = Quotation.objects.filter(
+            created_at__month=current_month,
+            created_at__year=current_year,
+            original_quotation__isnull=True  
+        ).order_by('-quotation_number').first()
  
+        if latest_quotation and latest_quotation.quotation_number:
+            try:
+                last_number = int(latest_quotation.quotation_number.split('-')[-1])
+                new_number = last_number + 1
+            except (ValueError, IndexError):
+                new_number = 1
+        else:
+            new_number = 1
+ 
+        return f"QN-{current_month:02d}-{current_year}-{new_number}"
+
  
 from django.db import models
 from django.db.models import Sum
@@ -166,68 +368,170 @@ from django.core.exceptions import ValidationError
 #             models.Index(fields=['lead', 'status']),
 #         ]
 
-from django.core.exceptions import ValidationError
-from decimal import Decimal
+# from django.core.exceptions import ValidationError
+# from decimal import Decimal
+# from django.db.models import Sum
+# from django.db import transaction
+# class Invoice(models.Model):
+#     invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+#     amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     quotation = models.ForeignKey('Quotation', on_delete=models.CASCADE)
+#     lead = models.ForeignKey('Lead', on_delete=models.CASCADE, default=1)  
+#     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     due_date = models.DateTimeField()
+#     status = models.CharField(max_length=50, choices=[('unpaid', 'Unpaid'), ('paid', 'Paid'), ('partially_paid', 'Partially Paid')])
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+#     @transaction.atomic
+#     def save(self, *args, **kwargs):
+#         if self.quotation:
+#             self.total_amount = self.quotation.total_amount
+
+#             # Ensure paid_amount is a Decimal
+#             paid_amount_decimal = Decimal(self.paid_amount)
+
+#             # Aggregate total paid for the quotation
+#             total_paid = Invoice.objects.filter(quotation=self.quotation).aggregate(total_paid=Sum('paid_amount'))['total_paid'] or Decimal(0)
+
+#             # Calculate remaining amount due
+#             remaining_amount_due = self.total_amount - total_paid
+
+#             # Validate if paid amount exceeds remaining amount due
+#             if paid_amount_decimal > remaining_amount_due:
+#                 raise ValidationError(f"You can only pay a maximum of Rs {remaining_amount_due}. You have already paid Rs {total_paid}.")
+
+#             # Ensure remaining amount due is not negative
+#             if remaining_amount_due < 0:
+#                 remaining_amount_due = Decimal(0)
+
+#             # Calculate the amount_due for this invoice
+#             self.amount_due = max(remaining_amount_due - paid_amount_decimal, Decimal(0))
+
+#             # Set the status of the invoice based on amount_due
+#             if self.amount_due == 0:
+#                 self.status = 'paid'
+#             elif self.amount_due < self.total_amount and self.amount_due > 0:
+#                 self.status = 'partially_paid'
+#             else:
+#                 self.status = 'unpaid'
+
+#         # Call the parent class save method
+#         super().save(*args, **kwargs)
+
+#     def __str__(self):
+#         return f"Invoice for {self.quotation.lead.name}"
+
+#     class Meta:
+#         verbose_name = "Invoice"
+#         verbose_name_plural = "Invoices"
+#         ordering = ['-created_at']
+#         unique_together = ['invoice_number']
+#         indexes = [
+#             models.Index(fields=['lead', 'status']),
+#         ]
+
+
+from django.db import models
 from django.db.models import Sum
+from decimal import Decimal
+from django.core.exceptions import ValidationError
 from django.db import transaction
+
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    quotation = models.ForeignKey('Quotation', on_delete=models.CASCADE)
-    lead = models.ForeignKey('Lead', on_delete=models.CASCADE, default=1)  
+    quotation = models.ForeignKey(Quotation, on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, default=1)  
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     due_date = models.DateTimeField()
-    status = models.CharField(max_length=50, choices=[('unpaid', 'Unpaid'), ('paid', 'Paid'), ('partially_paid', 'Partially Paid')])
-    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=50,
+        choices=[('unpaid', 'Unpaid'), ('paid', 'Paid'), ('partially_paid', 'Partially Paid')]
+    )
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
-    @transaction.atomic
+ 
+    def generate_invoice_number(self):
+        """
+        Generate a unique invoice number.
+        Format: INV-SEQUENCE-YEAR
+        """
+        current_year = timezone.now().year
+   
+        latest_invoice = Invoice.objects.filter(
+            created_at__year=current_year
+        ).order_by('-invoice_number').first()
+ 
+        if latest_invoice and latest_invoice.invoice_number:
+            try:
+                parts = latest_invoice.invoice_number.split('-')
+                if len(parts) == 3:
+                    last_number = int(parts[1])
+                    new_number = last_number + 1
+                else:
+                    new_number = 1
+            except (ValueError, IndexError):
+                new_number = 1
+        else:
+            new_number = 1
+ 
+        invoice_number = f"INV-{new_number}-{current_year}"
+       
+        while Invoice.objects.filter(invoice_number=invoice_number).exists():
+            new_number += 1
+            invoice_number = f"INV-{new_number}-{current_year}"
+       
+        return invoice_number
+ 
+ 
     def save(self, *args, **kwargs):
         if self.quotation:
-            self.total_amount = self.quotation.total_amount
-
-            # Ensure paid_amount is a Decimal
-            paid_amount_decimal = Decimal(self.paid_amount)
-
-            # Aggregate total paid for the quotation
-            total_paid = Invoice.objects.filter(quotation=self.quotation).aggregate(total_paid=Sum('paid_amount'))['total_paid'] or Decimal(0)
-
-            # Calculate remaining amount due
-            remaining_amount_due = self.total_amount - total_paid
-
-            # Validate if paid amount exceeds remaining amount due
-            if paid_amount_decimal > remaining_amount_due:
-                raise ValidationError(f"You can only pay a maximum of Rs {remaining_amount_due}. You have already paid Rs {total_paid}.")
-
-            # Ensure remaining amount due is not negative
-            if remaining_amount_due < 0:
-                remaining_amount_due = Decimal(0)
-
-            # Calculate the amount_due for this invoice
-            self.amount_due = max(remaining_amount_due - paid_amount_decimal, Decimal(0))
-
-            # Set the status of the invoice based on amount_due
-            if self.amount_due == 0:
-                self.status = 'paid'
-            elif self.amount_due < self.total_amount and self.amount_due > 0:
-                self.status = 'partially_paid'
-            else:
-                self.status = 'unpaid'
-
-        # Call the parent class save method
+            try:
+                self.total_amount = Decimal(str(self.quotation.total_amount))
+                self.paid_amount = Decimal(str(self.paid_amount)) if self.paid_amount else Decimal('0')
+ 
+                total_paid = Invoice.objects.filter(
+                    quotation=self.quotation
+                ).exclude(
+                    pk=self.pk  
+                ).aggregate(
+                    total_paid=Sum('paid_amount')
+                )['total_paid'] or Decimal('0')
+ 
+                remaining_amount_due = max(self.total_amount - total_paid, Decimal('0'))
+ 
+                if self.paid_amount > remaining_amount_due:
+                    raise ValidationError(
+                        f"Payment amount ({self.paid_amount}) exceeds remaining balance ({remaining_amount_due})"
+                    )
+ 
+                self.amount_due = max(remaining_amount_due - self.paid_amount, Decimal('0'))
+ 
+                if self.amount_due == Decimal('0'):
+                    self.status = 'paid'
+                elif Decimal('0') < self.amount_due < self.total_amount:
+                    self.status = 'partially_paid'
+                else:
+                    self.status = 'unpaid'
+ 
+                if not self.invoice_number:
+                    self.invoice_number = self.generate_invoice_number()
+ 
+            except (TypeError, ValueError, decimal.InvalidOperation) as e:
+                raise ValidationError(f"Invalid amount format: {str(e)}")
+ 
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Invoice for {self.quotation.lead.name}"
-
+ 
     class Meta:
         verbose_name = "Invoice"
         verbose_name_plural = "Invoices"
-        ordering = ['-created_at']
-        unique_together = ['invoice_number']
+        ordering = ['-created_at']  
+        unique_together = ['invoice_number']  
         indexes = [
-            models.Index(fields=['lead', 'status']),
+            models.Index(fields=['lead', 'status']),  
         ]
 
 class LeadToInvoice(models.Model):
@@ -268,7 +572,7 @@ class NumberingSystemSettings(models.Model):
     prefix = models.CharField(max_length=10, null=True, blank=True)
     suffix = models.CharField(max_length=10, null=True, blank=True)
     current_number = models.IntegerField(default=1)
-    increment_step = models.IntegerField(default=1)
+    increment_step = models.IntegerField(default=1) 
     reset_cycle = models.CharField(
         max_length=50,
         choices=[("monthly", "Monthly"), ("yearly", "Yearly")],
