@@ -8,7 +8,7 @@ import { PageDetail } from '../../components/nav/PageDetail';
 import { PanelGroup } from '../../components/panels/PanelGroup';
 import { UserRoles } from '../../enums/Roles';
 import { useUserState } from '../../states/UserState';
-import { PaidInvoiceTable } from '../../tables/invoice/PaidInvoice';
+import PaidInvoiceTable from '../../tables/invoice/PaidInvoice';
 import { PartialPaidInvoiceTable } from '../../tables/invoice/PartialPaid';
 import { UnPaidInvoiceTable } from '../../tables/invoice/UnPaidInvoice';
 

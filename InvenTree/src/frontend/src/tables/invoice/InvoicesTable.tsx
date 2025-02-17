@@ -2,7 +2,6 @@ import { t } from '@lingui/macro';
 import { useMemo } from 'react';
 
 import { AddItemButton } from '../../components/buttons/AddItemButton';
-import { Thumbnail } from '../../components/images/Thumbnail';
 import { formatCurrency } from '../../defaults/formatters';
 import { ApiEndpoints } from '../../enums/ApiEndpoints';
 import { ModelType } from '../../enums/ModelType';
@@ -17,16 +16,7 @@ import { useCreateApiFormModal } from '../../hooks/UseForm';
 import { useTable } from '../../hooks/UseTable';
 import { apiUrl } from '../../states/ApiState';
 import { useUserState } from '../../states/UserState';
-import {
-  CreatedByColumn,
-  CreationDateColumn,
-  DescriptionColumn,
-  ProjectCodeColumn,
-  ReferenceColumn,
-  ResponsibleColumn,
-  StatusColumn,
-  TargetDateColumn
-} from '../ColumnRenderers';
+
 import {
   AssignedToMeFilter,
   CompletedAfterFilter,
